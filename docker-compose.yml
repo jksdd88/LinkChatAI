@@ -1,0 +1,13 @@
+services:
+  linkchatai:
+    build: .
+    container_name: linkchatai
+    environment:
+      LINKCHATAI_DATABASE: /data/linkchatai.sqlite3
+      LINKCHATAI_HOST: 0.0.0.0
+      LINKCHATAI_PORT: 8000
+    ports:
+      - "${LINKCHATAI_HOST_PORT:-8002}:8000"
+    volumes:
+      - ./data:/data
+    restart: unless-stopped

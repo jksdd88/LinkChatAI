@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LinkChatAI 客服后台</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="account-panel" aria-label="账号列表">
+        <div class="brand-block">
+          <div class="brand-mark">LC</div>
+          <div>
+            <h1>LinkChatAI</h1>
+            <p>聚合客服后台</p>
+          </div>
+        </div>
+
+        <button class="account-row is-active" data-account-id="all" type="button">
+          <span class="account-avatar account-avatar-all">全</span>
+          <span class="account-copy">
+            <strong>全部账号</strong>
+            <small id="allAccountMeta">加载中</small>
+          </span>
+          <span class="account-badge" id="allUnread">0</span>
+        </button>
+
+        <div class="account-list" id="accountList"></div>
+      </aside>
+
+      <main class="workspace">
+        <section class="inbox-panel" aria-label="会话列表">
+          <div class="panel-header">
+            <div>
+              <h2>私信会话</h2>
+              <p id="inboxSubtitle">全部账号</p>
+            </div>
+          </div>
+
+          <label class="search-box">
+            <span>搜索</span>
+            <input id="conversationSearch" type="search" placeholder="用户、账号、消息" autocomplete="off" />
+          </label>
+
+          <div class="conversation-list" id="conversationList"></div>
+        </section>
+
+        <section class="chat-panel" aria-label="聊天窗口">
+          <div class="empty-state" id="emptyState">
+            <div class="empty-icon">⌁</div>
+            <h2>选择一个会话</h2>
+            <p>消息会展示在这里，后续直接接入对应手机采集到的聊天记录。</p>
+          </div>
+
+          <div class="chat-surface is-hidden" id="chatSurface">
+            <header class="chat-header">
+              <div class="chat-title">
+                <span class="customer-avatar" id="customerAvatar"></span>
+                <div>
+                  <h2 id="customerName">用户</h2>
+                  <p id="conversationMeta">账号</p>
+                </div>
+              </div>
+            </header>
+
+            <div class="message-timeline" id="messageTimeline"></div>
+
+            <form class="composer" id="composer">
+              <div class="composer-row">
+                <textarea id="replyInput" rows="3" placeholder="输入消息"></textarea>
+                <button class="send-button" type="submit">发送</button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/static/app.js" type="module"></script>
+  </body>
+</html>
