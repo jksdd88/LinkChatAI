@@ -2,9 +2,15 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.cache/
 .venv/
 venv/
 .env
 .env.local
 data/
+dist/
+android/LinkChatBridge/.gradle/
+android/LinkChatBridge/build/
+android/LinkChatBridge/debug.keystore
+android/LinkChatBridge/app/build/
 node_modules/

@@ -1,0 +1,33 @@
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "ai.linkchat.bridge"
+    compileSdk 35
+    buildToolsVersion "35.0.0"
+
+    signingConfigs {
+        debug {
+            storeFile rootProject.file("debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
+    }
+
+    defaultConfig {
+        applicationId "ai.linkchat.bridge"
+        minSdk 23
+        targetSdk 35
+        versionCode 16
+        versionName "0.2.11"
+        resValue "string", "default_server_url", project.findProperty("linkchatDefaultServerUrl") ?: "http://127.0.0.1:8002"
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+    }
+}

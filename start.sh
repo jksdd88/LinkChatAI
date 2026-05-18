@@ -33,3 +33,7 @@ echo "  Local: http://127.0.0.1:${PORT}"
 if [ -n "$LAN_IP" ]; then
   echo "  LAN:   http://${LAN_IP}:${PORT}"
 fi
+echo "Bridge:"
+echo "  Mode: ${LINKCHATAI_BRIDGE_SEND_MODE:-dry_run}"
+echo "  CrowdMasterAI: ${CROWDMASTERAI_BASE_URL:-http://host.docker.internal:8004}"
+echo "  Logs: docker compose logs -f bridge"

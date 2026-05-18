@@ -24,6 +24,8 @@ const els = {
   replyInput: document.querySelector("#replyInput"),
 };
 
+let refreshInFlight = false;
+
 function formatTime(value) {
   if (!value) return "";
   const date = new Date(value);
@@ -213,5 +215,24 @@ els.composer.addEventListener("submit", async (event) => {
   await loadMessages(state.selectedConversationId);
 });
 
+async function refreshVisibleData() {
+  if (refreshInFlight) return;
+  refreshInFlight = true;
+  try {
+    if (state.selectedConversationId) {
+      await loadMessages(state.selectedConversationId);
+    } else {
+      await loadAccounts();
+      await loadConversations();
+    }
+  } finally {
+    refreshInFlight = false;
+  }
+}
+
 await loadAccounts();
 await loadConversations();
+
+window.setInterval(() => {
+  refreshVisibleData().catch((error) => console.error(error));
+}, 3000);

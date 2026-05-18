@@ -16,8 +16,8 @@ class ChannelAdapter(Protocol):
     """Boundary for future message channels.
 
     The initial scaffold stores outbound messages locally. A real adapter can
-    later send normalized messages to an approved channel and return a delivery
-    result without changing the web UI.
+    later send normalized messages through a phone-side adapter and return a
+    delivery result without changing the web UI.
     """
 
     name: str

@@ -11,3 +11,18 @@ services:
     volumes:
       - ./data:/data
     restart: unless-stopped
+
+  bridge:
+    build: .
+    container_name: linkchatai-bridge
+    depends_on:
+      - linkchatai
+    environment:
+      LINKCHATAI_BASE_URL: http://linkchatai:8000
+      CROWDMASTERAI_BASE_URL: ${CROWDMASTERAI_BASE_URL:-http://host.docker.internal:8004}
+      LINKCHATAI_BRIDGE_SEND_MODE: ${LINKCHATAI_BRIDGE_SEND_MODE:-dry_run}
+      LINKCHATAI_BRIDGE_ACCOUNT_DEVICE_MAP: ${LINKCHATAI_BRIDGE_ACCOUNT_DEVICE_MAP:-}
+      LINKCHATAI_BRIDGE_DEVICE_SERIALS: ${LINKCHATAI_BRIDGE_DEVICE_SERIALS:-}
+      LINKCHATAI_BRIDGE_POLL_SECONDS: ${LINKCHATAI_BRIDGE_POLL_SECONDS:-3}
+    command: ["python", "-m", "app.bridge"]
+    restart: unless-stopped
