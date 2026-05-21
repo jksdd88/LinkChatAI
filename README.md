@@ -18,7 +18,7 @@ It does not implement Douyin client scraping or reverse engineering. Phone-side 
 ## Start
 
 ```bash
-./start.sh
+bash scripts/start_all.sh
 ```
 
 Open:
@@ -30,16 +30,16 @@ http://127.0.0.1:8002
 To use another host port:
 
 ```bash
-LINKCHATAI_HOST_PORT=8012 ./start.sh
+LINKCHATAI_HOST_PORT=8012 bash scripts/start_all.sh
 ```
 
 ## Stop
 
 ```bash
-./stop.sh
+bash scripts/stop_all.sh
 ```
 
-`stop.sh` pauses the Docker service without deleting the SQLite database under `data/`.
+`scripts/stop_all.sh` pauses the Docker service without deleting the SQLite database under `data/`.
 
 ## API
 
@@ -99,26 +99,26 @@ docker compose logs -f bridge
 By default the bridge connects to CrowdMasterAI at `http://host.docker.internal:8004`. Override it if your CrowdMasterAI port is different:
 
 ```bash
-CROWDMASTERAI_BASE_URL=http://host.docker.internal:8004 ./start.sh
+CROWDMASTERAI_BASE_URL=http://host.docker.internal:8004 bash scripts/start_all.sh
 ```
 
 Useful configuration:
 
 ```bash
 # Recommended first run: observe tasks only, no phone input.
-LINKCHATAI_BRIDGE_SEND_MODE=dry_run ./start.sh
+LINKCHATAI_BRIDGE_SEND_MODE=dry_run bash scripts/start_all.sh
 
 # Map Douyin account handles to CrowdMasterAI device serials.
-LINKCHATAI_BRIDGE_ACCOUNT_DEVICE_MAP='{"dy-account-01":"192.168.3.205:5555"}' ./start.sh
+LINKCHATAI_BRIDGE_ACCOUNT_DEVICE_MAP='{"dy-account-01":"192.168.3.205:5555"}' bash scripts/start_all.sh
 
 # If only one phone is used for testing, force that device.
-LINKCHATAI_BRIDGE_DEVICE_SERIALS='192.168.3.205:5555' ./start.sh
+LINKCHATAI_BRIDGE_DEVICE_SERIALS='192.168.3.205:5555' bash scripts/start_all.sh
 
 # Advanced: type the webpage reply into the focused phone input, but do not press send.
-LINKCHATAI_BRIDGE_SEND_MODE=crowdmaster_text_only ./start.sh
+LINKCHATAI_BRIDGE_SEND_MODE=crowdmaster_text_only bash scripts/start_all.sh
 
 # Advanced: type the reply and send ENTER through CrowdMasterAI.
-LINKCHATAI_BRIDGE_SEND_MODE=crowdmaster_text_enter ./start.sh
+LINKCHATAI_BRIDGE_SEND_MODE=crowdmaster_text_enter bash scripts/start_all.sh
 ```
 
 `crowdmaster_text_only` and `crowdmaster_text_enter` assume the phone is already on the correct Douyin conversation and the input box is focused. The bridge does not implement Douyin screen scraping, reverse engineering, or anti-risk-control behavior.
@@ -154,7 +154,7 @@ The first real-device test should use `crowdmaster_text_only`, so the bridge onl
 ```bash
 LINKCHATAI_BRIDGE_DEVICE_SERIALS='192.168.3.205:5555' \
 LINKCHATAI_BRIDGE_SEND_MODE=crowdmaster_text_only \
-./start.sh
+bash scripts/start_all.sh
 ```
 
 ## Android APK
@@ -193,7 +193,7 @@ Install it to the first phone reported by CrowdMasterAI:
 
 After the APK opens on the phone:
 
-- Set `LinkChatAI 地址` to the LAN address printed by `./start.sh`, for example `http://192.168.163.175:8002`.
+- Set `LinkChatAI 地址` to the LAN address printed by `bash scripts/start_all.sh`, for example `http://192.168.163.175:8002`.
 - Set `CrowdMasterAI 设备 serial` to the phone serial, for example `192.168.163.130:5555`.
 - Keep `账号标识` aligned with the web account handle, for example `dy-demo-01`.
 - Tap `保存配置`.

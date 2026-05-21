@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "$(dirname "$0")"
-
-docker compose stop
-
-echo "LinkChatAI has been stopped. Data remains in ./data."
+ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
+exec "$ROOT_DIR/scripts/stop_all.sh" "$@"
