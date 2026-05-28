@@ -43,5 +43,15 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/reply_accessibility_service" />
         </service>
+
+        <service
+            android:name=".DouyinDomainVpnService"
+            android:exported="false"
+            android:label="@string/domain_vpn_label"
+            android:permission="android.permission.BIND_VPN_SERVICE">
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>

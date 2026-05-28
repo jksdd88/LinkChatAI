@@ -10,10 +10,11 @@ The current version includes:
 - Mobile message bridge API
 - Outbound send-task queue for phone-side workers
 - Android notification and accessibility bridge scaffold
+- CrowdMasterAI-based visible Douyin message-page scanner
 - Optional seed demo data
 - A clean integration boundary for future channel adapters
 
-It does not implement Douyin client scraping or reverse engineering. Phone-side adapters can push normalized messages into the bridge API and pull outbound send tasks.
+It does not read Douyin private app databases, inspect encrypted traffic, or reverse engineer private APIs. It can collect Android notifications and visible Douyin UI text exposed through authorized device automation.
 
 ## Start
 
@@ -121,7 +122,20 @@ LINKCHATAI_BRIDGE_SEND_MODE=crowdmaster_text_only bash scripts/start_all.sh
 LINKCHATAI_BRIDGE_SEND_MODE=crowdmaster_text_enter bash scripts/start_all.sh
 ```
 
-`crowdmaster_text_only` and `crowdmaster_text_enter` assume the phone is already on the correct Douyin conversation and the input box is focused. The bridge does not implement Douyin screen scraping, reverse engineering, or anti-risk-control behavior.
+The bridge also scans visible Douyin UI text through CrowdMasterAI by default. If the phone is on the Douyin message tab, it opens the first visible conversation rows, reads the currently visible chat bubbles, submits them to LinkChatAI, and returns to the message tab. If the phone is already on a Douyin chat page, it reads the visible chat bubbles directly.
+
+```bash
+# Disable visible Douyin UI scanning.
+LINKCHATAI_BRIDGE_SCAN_DOUYIN=0 bash scripts/start_all.sh
+
+# Limit how many visible message-tab rows are opened per scan cycle.
+LINKCHATAI_BRIDGE_SCAN_CHAT_ROWS_LIMIT=3 bash scripts/start_all.sh
+
+# Keep controlled phones on Douyin for unattended scanning.
+LINKCHATAI_BRIDGE_AUTO_OPEN_DOUYIN=1 bash scripts/start_all.sh
+```
+
+`crowdmaster_text_only` and `crowdmaster_text_enter` assume the phone is already on the correct Douyin conversation and the input box is focused. The bridge does not read Douyin private app databases, inspect encrypted traffic, reverse engineer private APIs, or bypass platform risk controls.
 
 ## Trial Run
 
@@ -159,7 +173,7 @@ bash scripts/start_all.sh
 
 ## Android APK
 
-The phone-side APK lives under `android/LinkChatBridge/`. It uses Android's notification listener permission to forward domestic Douyin private-message notifications to LinkChatAI, and an accessibility service to read visible unread rows on the Douyin message tab plus send queued webpage replies through the currently open Douyin chat page. It does not reverse engineer Douyin, inspect encrypted traffic, or bypass platform risk controls.
+The phone-side APK lives under `android/LinkChatBridge/`. It uses Android's notification listener permission to forward domestic Douyin private-message notifications to LinkChatAI, and an accessibility service to read visible unread rows on the Douyin message tab plus send queued webpage replies through the currently open Douyin chat page. The accessibility service also watches Douyin UID traffic counters through Android `TrafficStats`; when Douyin receives/sends enough bytes it posts a visible `抖音网络线索` system marker. That marker is only a scan trigger/clue and does not include decrypted request bodies. It does not reverse engineer Douyin, inspect encrypted traffic, or bypass platform risk controls.
 
 Build the debug APK:
 
@@ -208,9 +222,9 @@ For a real Douyin private message test:
 2. Send a private message to this phone's Douyin account from another Douyin account.
 3. When the phone receives the Douyin notification, the APK parses the notification title/body and forwards it into LinkChatAI as an inbound message.
 
-The notification bridge only sees notifications that Android exposes. It can receive new message notifications, but it cannot backfill old Douyin chat history from inside the Douyin app.
+The notification bridge only sees notifications that Android exposes. It can receive new message notifications, but it cannot backfill old Douyin chat history from inside the Douyin app database.
 
-If Douyin only shows an in-app red dot and does not post an Android notification, keep the Douyin message tab visible. The accessibility bridge reads visible unread conversation rows and forwards the customer name plus latest preview into LinkChatAI.
+If Douyin only shows an in-app red dot and does not post an Android notification, keep the Douyin message tab visible. The CrowdMasterAI bridge opens visible conversation rows, reads currently visible chat bubbles, and syncs them into LinkChatAI.
 
 For a real reply test:
 

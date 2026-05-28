@@ -36,6 +36,10 @@ public class DouyinNotificationListener extends NotificationListenerService {
         }
 
         DouyinConversationIdentity identity = notificationIdentity(sbn, notification, parsed);
+        BridgeConfig.rememberAccountDisplayName(
+                getApplicationContext(),
+                notificationAccountDisplayName(notification, parsed)
+        );
         String channelMessageId = String.format(
                 Locale.US,
                 "douyin-notification-%d-%s",
@@ -87,6 +91,24 @@ public class DouyinNotificationListener extends NotificationListenerService {
             return null;
         }
         return parsed;
+    }
+
+    private static String notificationAccountDisplayName(Notification notification, ParsedNotification parsed) {
+        if (notification.extras == null) {
+            return "";
+        }
+        String candidate = firstNonEmpty(
+                charSequenceToString(notification.extras.getCharSequence(Notification.EXTRA_SUB_TEXT)),
+                charSequenceToString(notification.extras.getCharSequence("android.subText")),
+                ""
+        );
+        if (candidate.isEmpty()
+                || candidate.equals(parsed.customerName)
+                || candidate.contains(parsed.body)
+                || isGenericDouyinTitle(candidate)) {
+            return "";
+        }
+        return candidate;
     }
 
     private static DouyinConversationIdentity notificationIdentity(

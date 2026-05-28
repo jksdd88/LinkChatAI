@@ -22,9 +22,14 @@ const els = {
   messageTimeline: document.querySelector("#messageTimeline"),
   composer: document.querySelector("#composer"),
   replyInput: document.querySelector("#replyInput"),
+  toast: document.querySelector("#newMessageToast"),
 };
 
 let refreshInFlight = false;
+let conversationsInitialized = false;
+let toastTimer = null;
+const conversationSnapshots = new Map();
+const messageMaxIds = new Map();
 
 function formatTime(value) {
   if (!value) return "";
@@ -63,6 +68,7 @@ async function loadConversations() {
   const params = new URLSearchParams();
   if (state.selectedAccountId !== "all") params.set("account_id", state.selectedAccountId);
   const data = await request(`/api/conversations?${params.toString()}`);
+  detectConversationUpdates(data.conversations);
   state.conversations = data.conversations;
   renderConversations();
 }
@@ -90,7 +96,7 @@ function renderAccounts() {
       <span class="account-avatar" style="--avatar-color: ${account.avatar_color}">${escapeHtml(account.display_name.slice(-2))}</span>
       <span class="account-copy">
         <strong>${escapeHtml(account.display_name)}</strong>
-        <small>${escapeHtml(account.handle)} · ${account.conversation_count} 会话</small>
+        <small>${account.conversation_count} 会话</small>
       </span>
       <span class="account-badge ${account.unread_count === 0 ? "is-empty" : ""}">${account.unread_count}</span>
     </button>
@@ -164,12 +170,13 @@ function renderConversations() {
 }
 
 function showConversation(conversation, messages) {
+  detectSelectedConversationUpdates(conversation.id, messages);
   els.emptyState.classList.add("is-hidden");
   els.chatSurface.classList.remove("is-hidden");
   els.customerAvatar.textContent = conversation.customer_name.slice(0, 1);
   els.customerAvatar.style.setProperty("--avatar-color", conversation.customer_avatar_color);
   els.customerName.textContent = conversation.customer_name;
-  els.conversationMeta.textContent = `${conversation.account_name} · ${conversation.customer_handle || "未记录用户标识"}`;
+  els.conversationMeta.textContent = conversation.account_name;
   els.messageTimeline.innerHTML = messages.map((message) => `
     <article class="message-bubble ${message.direction}">
       <div class="message-meta">
@@ -180,6 +187,67 @@ function showConversation(conversation, messages) {
     </article>
   `).join("");
   els.messageTimeline.scrollTop = els.messageTimeline.scrollHeight;
+}
+
+function snapshotConversation(conversation) {
+  return {
+    preview: conversation.last_message_preview || "",
+    lastMessageAt: conversation.last_message_at || "",
+    unreadCount: Number(conversation.unread_count || 0),
+  };
+}
+
+function detectConversationUpdates(conversations) {
+  conversations.forEach((conversation) => {
+    const next = snapshotConversation(conversation);
+    const previous = conversationSnapshots.get(conversation.id);
+    const isSelected = conversation.id === state.selectedConversationId;
+
+    if (conversationsInitialized && previous && !isSelected) {
+      const messageChanged = next.lastMessageAt && next.lastMessageAt !== previous.lastMessageAt;
+      const unreadIncreased = next.unreadCount > previous.unreadCount;
+      if ((messageChanged || unreadIncreased) && next.preview) {
+        showToast(`新消息：${next.preview}`, conversation.id);
+      }
+    }
+
+    conversationSnapshots.set(conversation.id, next);
+  });
+
+  conversationsInitialized = true;
+}
+
+function detectSelectedConversationUpdates(conversationId, messages) {
+  const maxId = messages.reduce((highest, message) => Math.max(highest, Number(message.id || 0)), 0);
+  const previousMaxId = messageMaxIds.get(conversationId);
+
+  if (previousMaxId && maxId > previousMaxId) {
+    const newMessage = [...messages]
+      .filter((message) => Number(message.id || 0) > previousMaxId)
+      .reverse()
+      .find((message) => message.direction !== "outbound");
+
+    if (newMessage) {
+      showToast(`新消息：${newMessage.body}`, conversationId);
+    }
+  }
+
+  messageMaxIds.set(conversationId, maxId);
+}
+
+function showToast(text, conversationId) {
+  if (!els.toast) return;
+  els.toast.textContent = text;
+  els.toast.dataset.conversationId = String(conversationId);
+  els.toast.classList.remove("is-hidden");
+
+  window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(hideToast, 5000);
+}
+
+function hideToast() {
+  if (!els.toast) return;
+  els.toast.classList.add("is-hidden");
 }
 
 function hideConversation() {
@@ -213,6 +281,14 @@ els.composer.addEventListener("submit", async (event) => {
   });
   els.replyInput.value = "";
   await loadMessages(state.selectedConversationId);
+});
+
+els.toast?.addEventListener("click", () => {
+  const conversationId = Number(els.toast.dataset.conversationId || 0);
+  hideToast();
+  if (conversationId) {
+    loadMessages(conversationId).catch((error) => console.error(error));
+  }
 });
 
 async function refreshVisibleData() {

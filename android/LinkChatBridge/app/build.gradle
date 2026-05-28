@@ -20,8 +20,8 @@ android {
         applicationId "ai.linkchat.bridge"
         minSdk 23
         targetSdk 35
-        versionCode 16
-        versionName "0.2.11"
+        versionCode 20
+        versionName "0.2.15"
         resValue "string", "default_server_url", project.findProperty("linkchatDefaultServerUrl") ?: "http://127.0.0.1:8002"
     }
 

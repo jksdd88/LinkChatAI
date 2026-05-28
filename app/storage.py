@@ -166,6 +166,16 @@ def canonical_mobile_customer_handle(customer_handle: str, customer_name: str) -
     return (customer_handle or "").strip()
 
 
+def auto_mobile_account_handle(device_serial: str) -> str:
+    token = java_string_hash_hex((device_serial or "").strip() or "unknown")
+    return f"dy-device-{token}"
+
+
+def auto_mobile_account_display_name(account_handle: str) -> str:
+    token = java_string_hash_hex((account_handle or "").strip() or "unknown")
+    return f"抖音账号 {token[-4:]}"
+
+
 def merge_mobile_conversation_aliases(conn: sqlite3.Connection) -> None:
     rows = conn.execute(
         """

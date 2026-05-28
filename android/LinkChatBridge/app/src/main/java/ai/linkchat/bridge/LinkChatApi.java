@@ -29,6 +29,39 @@ final class LinkChatApi {
             String body,
             String channelMessageId
     ) throws Exception {
+        return postMobileMessage(
+                context,
+                conversationExternalId,
+                customerName,
+                customerHandle,
+                "inbound",
+                body,
+                channelMessageId
+        );
+    }
+
+    static String postMobileSignal(Context context, String body, String channelMessageId) throws Exception {
+        String token = Integer.toHexString(BridgeConfig.deviceSerial(context).hashCode());
+        return postMobileMessage(
+                context,
+                "douyin-network-signal-" + token,
+                "抖音网络线索",
+                "douyin-network-signal",
+                "system",
+                body,
+                channelMessageId
+        );
+    }
+
+    private static String postMobileMessage(
+            Context context,
+            String conversationExternalId,
+            String customerName,
+            String customerHandle,
+            String direction,
+            String body,
+            String channelMessageId
+    ) throws Exception {
         String baseUrl = trimTrailingSlash(BridgeConfig.serverUrl(context));
         URL url = new URL(baseUrl + "/api/mobile/messages");
 
@@ -39,7 +72,7 @@ final class LinkChatApi {
         payload.put("conversation_external_id", conversationExternalId);
         payload.put("customer_name", customerName);
         payload.put("customer_handle", customerHandle);
-        payload.put("direction", "inbound");
+        payload.put("direction", direction);
         payload.put("body", body);
         payload.put("channel_message_id", channelMessageId);
 

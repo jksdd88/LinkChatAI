@@ -24,6 +24,7 @@ public class DouyinReplyAccessibilityService extends AccessibilityService {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Set<String> forwardedInboxKeys = new HashSet<>();
+    private final DouyinNetworkActivityMonitor networkActivityMonitor = new DouyinNetworkActivityMonitor();
     private boolean running = false;
     private boolean polling = false;
 
@@ -87,6 +88,7 @@ public class DouyinReplyAccessibilityService extends AccessibilityService {
     }
 
     private void pollAndProcessTasks() throws Exception {
+        networkActivityMonitor.poll(getApplicationContext());
         scanVisibleInbox();
 
         List<OutboundTask> tasks = LinkChatApi.getPendingSendTasks(this, TASK_LIMIT);

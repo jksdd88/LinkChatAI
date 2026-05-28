@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.VpnService;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -20,11 +21,11 @@ import java.util.Locale;
 
 public class MainActivity extends Activity {
     private static final String DOUYIN_PACKAGE = "com.ss.android.ugc.aweme";
+    private static final int REQUEST_VPN_PERMISSION = 7102;
 
     private EditText serverUrlInput;
     private EditText deviceSerialInput;
-    private EditText accountHandleInput;
-    private EditText accountDisplayNameInput;
+    private TextView accountInfoText;
     private TextView statusText;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
@@ -60,8 +61,9 @@ public class MainActivity extends Activity {
 
         serverUrlInput = addInput(root, "LinkChatAI 地址，例如 http://192.168.3.206:8002");
         deviceSerialInput = addInput(root, "CrowdMasterAI 设备 serial，例如 192.168.163.130:5555");
-        accountHandleInput = addInput(root, "账号标识，例如 dy-demo-01");
-        accountDisplayNameInput = addInput(root, "账号显示名，例如 抖音试用号 01");
+        accountInfoText = new TextView(this);
+        accountInfoText.setPadding(0, 0, 0, dp(10));
+        root.addView(accountInfoText);
 
         Button saveButton = addButton(root, "保存配置");
         saveButton.setOnClickListener(view -> saveConfig());
@@ -74,6 +76,12 @@ public class MainActivity extends Activity {
 
         Button douyinButton = addButton(root, "打开抖音");
         douyinButton.setOnClickListener(view -> openDouyin());
+
+        Button vpnStartButton = addButton(root, "启动域名探针 VPN");
+        vpnStartButton.setOnClickListener(view -> requestStartDomainVpn());
+
+        Button vpnStopButton = addButton(root, "停止域名探针 VPN");
+        vpnStopButton.setOnClickListener(view -> stopDomainVpn());
 
         Button testButton = addButton(root, "发送测试私信到 LinkChatAI");
         testButton.setOnClickListener(view -> sendTestMessage());
@@ -117,8 +125,8 @@ public class MainActivity extends Activity {
         SharedPreferences prefs = BridgeConfig.prefs(this);
         serverUrlInput.setText(BridgeConfig.serverUrl(this));
         deviceSerialInput.setText(BridgeConfig.deviceSerial(this));
-        accountHandleInput.setText(prefs.getString(BridgeConfig.KEY_ACCOUNT_HANDLE, "dy-demo-01"));
-        accountDisplayNameInput.setText(prefs.getString(BridgeConfig.KEY_ACCOUNT_DISPLAY_NAME, "抖音试用号 01"));
+        prefs.edit().remove(BridgeConfig.KEY_ACCOUNT_HANDLE).apply();
+        updateAccountInfo();
         updatePermissionStatus();
     }
 
@@ -127,10 +135,14 @@ public class MainActivity extends Activity {
                 .edit()
                 .putString(BridgeConfig.KEY_SERVER_URL, serverUrlInput.getText().toString().trim())
                 .putString(BridgeConfig.KEY_DEVICE_SERIAL, deviceSerialInput.getText().toString().trim())
-                .putString(BridgeConfig.KEY_ACCOUNT_HANDLE, accountHandleInput.getText().toString().trim())
-                .putString(BridgeConfig.KEY_ACCOUNT_DISPLAY_NAME, accountDisplayNameInput.getText().toString().trim())
+                .remove(BridgeConfig.KEY_ACCOUNT_HANDLE)
                 .apply();
+        updateAccountInfo();
         updatePermissionStatus("配置已保存。");
+    }
+
+    private void updateAccountInfo() {
+        accountInfoText.setText("当前抖音账号：" + BridgeConfig.accountDisplayName(this) + "\n系统会自动关联到这台手机，无需手动填写账号。");
     }
 
     private void sendTestMessage() {
@@ -164,6 +176,41 @@ public class MainActivity extends Activity {
         startActivity(intent);
     }
 
+    private void requestStartDomainVpn() {
+        saveConfig();
+        Intent permissionIntent = VpnService.prepare(this);
+        if (permissionIntent != null) {
+            statusText.setText("请在系统弹窗里允许 LinkChat Bridge 建立本机 VPN，用于采集抖音域名线索。");
+            startActivityForResult(permissionIntent, REQUEST_VPN_PERMISSION);
+            return;
+        }
+        startDomainVpn();
+    }
+
+    private void startDomainVpn() {
+        Intent intent = new Intent(this, DouyinDomainVpnService.class);
+        intent.setAction(DouyinDomainVpnService.ACTION_START);
+        startService(intent);
+        updatePermissionStatus("域名探针 VPN 正在启动。");
+    }
+
+    private void stopDomainVpn() {
+        Intent intent = new Intent(this, DouyinDomainVpnService.class);
+        intent.setAction(DouyinDomainVpnService.ACTION_STOP);
+        startService(intent);
+        updatePermissionStatus("域名探针 VPN 已请求停止。");
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_VPN_PERMISSION && resultCode == RESULT_OK) {
+            startDomainVpn();
+        } else if (requestCode == REQUEST_VPN_PERMISSION) {
+            updatePermissionStatus("没有获得 VPN 授权，域名探针未启动。");
+        }
+    }
+
     private void updatePermissionStatus() {
         updatePermissionStatus("");
     }
@@ -175,8 +222,10 @@ public class MainActivity extends Activity {
         String accessibilityText = isAccessibilityServiceEnabled()
                 ? "无障碍回复代发已开启，可以处理网页回复任务。"
                 : "无障碍回复代发未开启，网页回复暂时不会自动发到抖音。";
-        String text = permissionText + "\n" + accessibilityText;
+        String vpnText = "域名探针 VPN：需要点击启动并授权后，才会采集抖音 DNS 域名线索。";
+        String text = permissionText + "\n" + accessibilityText + "\n" + vpnText;
         statusText.setText((prefix == null || prefix.trim().isEmpty()) ? text : prefix + "\n" + text);
+        updateAccountInfo();
     }
 
     private boolean isNotificationListenerEnabled() {

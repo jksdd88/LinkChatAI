@@ -26,7 +26,7 @@ class OutboundMessagePayload(BaseModel):
 
 class MobileMessagePayload(BaseModel):
     device_serial: str = Field(min_length=1, max_length=120)
-    account_handle: str = Field(min_length=1, max_length=120)
+    account_handle: str = Field(default="", max_length=120)
     account_display_name: str = Field(default="", max_length=80)
     conversation_external_id: str = Field(min_length=1, max_length=160)
     customer_name: str = Field(min_length=1, max_length=80)
@@ -103,12 +103,15 @@ def api_send_message(conversation_id: int, payload: OutboundMessagePayload) -> d
 @app.post("/api/mobile/messages", status_code=201)
 def api_mobile_message(payload: MobileMessagePayload) -> dict[str, object]:
     body = payload.body.strip()
+    device_serial = payload.device_serial.strip()
+    account_handle = payload.account_handle.strip() or storage.auto_mobile_account_handle(device_serial)
+    account_display_name = payload.account_display_name.strip() or storage.auto_mobile_account_display_name(account_handle)
     if not body:
         raise HTTPException(status_code=422, detail="Message body cannot be empty")
     return storage.upsert_mobile_message(
-        device_serial=payload.device_serial.strip(),
-        account_handle=payload.account_handle.strip(),
-        account_display_name=payload.account_display_name.strip() or payload.account_handle.strip(),
+        device_serial=device_serial,
+        account_handle=account_handle,
+        account_display_name=account_display_name,
         conversation_external_id=payload.conversation_external_id.strip(),
         customer_name=payload.customer_name.strip(),
         customer_handle=payload.customer_handle.strip(),

@@ -420,6 +420,40 @@ textarea:focus-visible {
   display: none;
 }
 
+.toast {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 40;
+  max-width: min(360px, calc(100vw - 28px));
+  border: 1px solid rgba(0, 242, 234, 0.42);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background:
+    linear-gradient(90deg, rgba(0, 242, 234, 0.14), rgba(255, 0, 80, 0.10)),
+    #11131a;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.24);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  text-align: left;
+  transform: translateY(0);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.toast:hover {
+  border-color: rgba(255, 0, 80, 0.52);
+}
+
+.toast.is-hidden {
+  display: block;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-8px);
+}
+
 .chat-header {
   display: flex;
   align-items: center;

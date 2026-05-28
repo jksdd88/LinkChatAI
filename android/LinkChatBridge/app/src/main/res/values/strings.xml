@@ -2,5 +2,6 @@
     <string name="app_name">LinkChat Bridge</string>
     <string name="notification_listener_label">LinkChat Bridge 抖音通知桥接</string>
     <string name="reply_accessibility_label">LinkChat Bridge 抖音回复代发</string>
+    <string name="domain_vpn_label">LinkChat Bridge 抖音域名探针</string>
     <string name="reply_accessibility_description">读取当前抖音聊天页内容，匹配网页回复任务后自动填入并点击发送。</string>
 </resources>

@@ -40,7 +40,7 @@
 
           <label class="search-box">
             <span>搜索</span>
-            <input id="conversationSearch" type="search" placeholder="用户、账号、消息" autocomplete="off" />
+            <input id="conversationSearch" type="search" placeholder="用户、账号昵称、消息" autocomplete="off" />
           </label>
 
           <div class="conversation-list" id="conversationList"></div>
@@ -76,6 +76,7 @@
         </section>
       </main>
     </div>
+    <button class="toast is-hidden" id="newMessageToast" type="button" aria-live="polite" aria-label="新消息提示"></button>
 
     <script src="/static/app.js" type="module"></script>
   </body>
